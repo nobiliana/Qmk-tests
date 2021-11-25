@@ -24,8 +24,8 @@
 enum layer_names {
     _BASE,
     _FN1,
-        _FN2,
-        _FN3,
+	_FN2,
+	_FN3,
     //custom keycodes??
     //WAKA1 = SAFE_RNGE,
     //FFVIC,
@@ -48,6 +48,7 @@ enum custom_keycodes {
 };
 
 
+
 //keynote process????
 extern audio_config_t audio_config;
 #    ifndef NO_MUSIC_MODE
@@ -67,6 +68,7 @@ extern bool midi_activated;
   float play_note = key_note_n;
   float play_du = key_note_du;
   float kn_song[][2] = SONG(LEROY_TYPE);
+  float waka_key[][2] = SONG(WAKA_ONE);
 
   float intro_song[][2] = {{key_note_n, key_note_du}}; //intro blurb variable
   float key_note_array[][2] = {{key_note_n, key_note_du}}; //the song 
@@ -79,20 +81,17 @@ extern bool midi_activated;
   #   ifndef NO_MUSIC_MODE
       if (music_activated || midi_activated || !audio_config.enable) return;
   #   endif //!NO_MUSIC_MODE
-    if (kn_active){
+    if (kn_active && !waka_active){
       key_note_array[0][0] = kn_song[kn_position][0]; //setting the new note to play
       key_note_array[0][1] = kn_song[kn_position][1]; //setting the note duration to play
       if(kn_position<song_size){
         kn_position = kn_position+1; //increment array forwards by one
-      } else {
+      } else if (kn_position>=song_size) {
         kn_position = 0;
         kn_active = false;
       }
       PLAY_SONG(key_note_array);
-    } else if (waka_active){
-      float key_note_array[][2] = SONG(WAKA_ONE);
-      PLAY_SONG(key_note_array);
-    }
+    } //else if (waka_active && !kn_active){}
 
   }
 
@@ -119,25 +118,6 @@ extern bool midi_activated;
       PLAY_SONG(intro_song);
       waka_active = false;
     }
-  }
-
-  bool process_key_note(uint16_t keycode, keyrecord_t *record) { //key detection?
-/*    if (keycode == KN_TTOG && record->event.pressed) {
-      typewriter_song(); //typewriter process
-    }
-    if (keycode == KN_WTOG && record->event.pressed){
-      waka_song(); //waka process
-    }
-
-    if (audio_config.enable) {
-      if (record->event.pressed){
-        if (keycode != AU_OFF && keycode != AU_TOG && kn_active){ //makes sure audio system is on, and key_note sequence is still online
-          key_note_play();
-        }
-      }
-    }
-    */
-    return true;
   }
 
 #endif // AUDIO_ENABLE
@@ -225,6 +205,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed){
         if (keycode != AU_OFF && keycode != AU_TOG && kn_active){ //makes sure audio system is on, and key_note sequence is still online
           key_note_play();
+        } else if (keycode != AU_OFF && keycode != AU_TOG && waka_active){
+          PLAY_SONG(waka_key);
         }
       }
     }
